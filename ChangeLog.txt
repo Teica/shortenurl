@@ -1,0 +1,6 @@
+13.11.2020. (mpejcinovic) v0.00.001 -> Initial structure of the project
+                                       Added .gitignore
+
+13.11.2020. (mpejcinovic) v0.00.002 -> Configured project
+                                       Configured Swagger
+                                       Added StatusController
