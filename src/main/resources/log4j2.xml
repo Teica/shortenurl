@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration statusWS="warn">
+
+    <Properties>
+        <Property name="folder">${env:JBOSS_HOME}</Property>
+        <Property name="fileName">shortenurl</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile
+                name="RollingFile"
+                fileName="/var/log/url/${fileName}.log"
+                filePattern="${folder}/standalone/log/$${date:yyyy-MM}/${fileName}-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d [%15.15t] %-5p %30.30c - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

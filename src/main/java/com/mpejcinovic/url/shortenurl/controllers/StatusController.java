@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * running currently or not.
  *
  * @author Matea Pejcinovic
- * @version 0.00.001
+ * @version 0.00.002
  * @since 13.11.2020.
  */
 @Api(value = "Status Management", tags = "Status controller")

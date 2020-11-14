@@ -5,7 +5,7 @@ package com.mpejcinovic.url.shortenurl.configuration;
  * the Swagger API documentation.
  *
  * @author Matea Pejcinovic
- * @version 0.00.001
+ * @version 0.00.002
  * @since 13.11.2020.
  */
 public class SwaggerSettingsConstants {

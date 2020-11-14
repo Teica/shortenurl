@@ -17,7 +17,7 @@ import static com.mpejcinovic.url.shortenurl.configuration.SwaggerSettingsConsta
  * documenting the service.
  *
  * @author Matea Pejcinovic
- * @version 0.00.001
+ * @version 0.00.002
  * @since 13.11.2020.
  */
 @Configuration
