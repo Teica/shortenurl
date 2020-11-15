@@ -7,6 +7,7 @@ import lombok.Setter;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -18,4 +19,5 @@ public class Url {
     private Long id;
     private String longUrl;
     private String shortUrl;
+    private Date submitDate;
 }

@@ -5,6 +5,7 @@ import com.mpejcinovic.url.shortenurl.object.Url;
 import lombok.NoArgsConstructor;
 
 import java.sql.*;
+import java.time.LocalDate;
 
 @NoArgsConstructor
 public class DBHelper {
@@ -106,5 +107,62 @@ public class DBHelper {
             System.err.println("Got an exception! " + e);
         }
         return id;
+    }
+
+    public int getNumberOfRequestForPreviousDay(LocalDate yesterday) {
+
+        System.out.println("Today is " + yesterday);
+        int numberOfRequests = -1;
+
+        try {
+            ResultSet rs;
+
+            System.out.println("Prepared statement");
+            PreparedStatement statement = getConnection().prepareStatement("SELECT COUNT(*) FROM URL WHERE SUBMIT_DATE=?");
+            statement.setDate(1, java.sql.Date.valueOf(yesterday));
+
+            System.out.println("Executing...");
+            rs = statement.executeQuery();
+
+            if (rs.next()) {
+                numberOfRequests = rs.getInt(1);
+                System.out.println("Number of requests: " + numberOfRequests);
+            } else {
+                System.out.println("Error: could not get the record counts");
+            }
+            getConnection().close();
+        } catch (Exception e) {
+            System.err.println("Got an exception! " + e);
+        }
+        return numberOfRequests;
+
+    }
+
+    public int getNumberOfRequestForDateRange(LocalDate startDate, LocalDate endDate) {
+        System.out.println("Start date: " + startDate + ", end date: " + endDate);
+        int numberOfRequests = -1;
+
+        try {
+            ResultSet rs;
+
+            System.out.println("Prepared statement");
+            PreparedStatement statement = getConnection().prepareStatement("SELECT COUNT(*) FROM URL WHERE SUBMIT_DATE BETWEEN ? AND ?");
+            statement.setDate(1, java.sql.Date.valueOf(startDate));
+            statement.setDate(2, java.sql.Date.valueOf(endDate));
+
+            System.out.println("Executing...");
+            rs = statement.executeQuery();
+
+            if (rs.next()) {
+                numberOfRequests = rs.getInt(1);
+                System.out.println("Number of requests: " + numberOfRequests);
+            } else {
+                System.out.println("Error: could not get the record counts");
+            }
+            getConnection().close();
+        } catch (Exception e) {
+            System.err.println("Got an exception! " + e);
+        }
+        return numberOfRequests;
     }
 }

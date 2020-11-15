@@ -24,15 +24,11 @@ public class Config {
     private String language;
 
     @Getter
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
+    @Value("${shortenurl.infobip.sms.endpoint}")
+    private String infobipSMSEndpoint;
 
     @Getter
-    @Value("${spring.datasource.username}")
-    private String dbUsername;
-
-    @Getter
-    @Value("${spring.datasource.password}")
-    private String dbPassword;
+    @Value("${shortenurl.infobip.account.key}")
+    private String infobipAccountKey;
 
 }

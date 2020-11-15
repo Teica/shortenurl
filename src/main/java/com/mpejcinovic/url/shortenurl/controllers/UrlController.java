@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -77,8 +78,9 @@ public class UrlController {
 
         if (existingUrl != null){
             System.out.println("URL already inserted!");
-            shortenUrlResponse = prepareShortenedUrlResponse(request, existingUrl.getShortUrl());
-            return new ResponseEntity(shortenUrlResponse, HttpStatus.OK);
+            return new ResponseEntity(
+                    new ShortenUrlResponse(existingUrl.getShortUrl()),
+                    HttpStatus.OK);
         }
 
         String shortenUrl = UrlHelper.shortenUrl(counter.get());
@@ -87,6 +89,7 @@ public class UrlController {
             Url url = new Url();
             url.setShortUrl(shortenUrl);
             url.setLongUrl(preparedUrl);
+            url.setSubmitDate(new Date());
 
             int id = dbHelper.insertUrl(url);
             counter.getAndIncrement();
@@ -130,22 +133,19 @@ public class UrlController {
         DBHelper dbHelper = new DBHelper(dbProperties);
 
         int id = UrlHelper.shortURLtoID(hash);
-        System.out.println("ID je: " + id);
+        System.out.println("ID is: " + id);
 
         Url url = dbHelper.getUrlById(id);
 
         RedirectResponse redirectResponse = new RedirectResponse(url.getLongUrl());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", url.getLongUrl());
-
         try {
-            httpServletResponse.sendRedirect(url.getLongUrl());
+            httpServletResponse.sendRedirect(redirectResponse.getUrl());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return new ResponseEntity(redirectResponse,HttpStatus.FOUND);
+        return new ResponseEntity(redirectResponse, HttpStatus.FOUND);
     }
 
 }

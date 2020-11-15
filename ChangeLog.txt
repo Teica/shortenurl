@@ -7,3 +7,5 @@
 
 13.11.2020. (mpejcinovic) v0.00.003 -> Added UrlController
                                        Implemented methods for shortening URL and reversing the URL with redirection
+
+15.11.2020. (mpejcinovic) v0.00.004 -> Implemented schedulers for sending reports
