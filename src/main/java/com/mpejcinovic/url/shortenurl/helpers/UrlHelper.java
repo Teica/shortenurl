@@ -48,11 +48,9 @@ public class UrlHelper {
         return "";
     }
 
-    public static int shortURLtoID(String shortURL)
-    {
+    public static int shortURLtoID(String shortURL) {
         int id = 0;
-        for (int i = 0; i < shortURL.length(); i++)
-        {
+        for (int i = 0; i < shortURL.length(); i++) {
             if ('a' <= shortURL.charAt(i) &&
                     shortURL.charAt(i) <= 'z')
                 id = id * 62 + shortURL.charAt(i) - 'a';
@@ -66,4 +64,16 @@ public class UrlHelper {
         return id;
     }
 
+    public static String prepareUrl(String url) {
+        System.out.println("Method prepareUrl started!");
+
+        int index = url.indexOf("://");
+        System.out.println("Index of :// " + index);
+
+        url = url.substring(index, url.length());
+        System.out.println("Prepared URL: " + url);
+
+        System.out.println("Method prepareUrl finished!");
+        return url;
+    }
 }

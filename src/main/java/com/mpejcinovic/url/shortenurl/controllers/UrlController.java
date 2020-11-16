@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,14 +56,12 @@ public class UrlController {
         URL_LOGGER.info("Method shortenUrl started.");
         ShortenUrlResponse shortenUrlResponse = null;
 
-        //pripremi URL za https i http
-        String preparedUrl = shortenUrlRequest.getUrl().trim();
-
+        String trimmedUrl = shortenUrlRequest.getUrl().trim();
         DBHelper dbHelper = new DBHelper(dbProperties);
 
-        if (!UrlHelper.isUrlValid(preparedUrl)) {
+        if (!UrlHelper.isUrlValid(trimmedUrl)) {
 
-            System.out.println(preparedUrl + " is not valid!");
+            System.out.println(trimmedUrl + " is not valid!");
 
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setTimestamp(LocalDateTime.now().toString());
@@ -74,6 +73,13 @@ public class UrlController {
             return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
+        int urlLength = trimmedUrl.length();
+        if (trimmedUrl.substring(urlLength - 1, urlLength).equals("/")) {
+            trimmedUrl = trimmedUrl.substring(0, urlLength - 1);
+        }
+
+        String preparedUrl = UrlHelper.prepareUrl(trimmedUrl);
+
         Url existingUrl = dbHelper.getUrlByLongUrl(preparedUrl);
 
         if (existingUrl != null){
@@ -83,18 +89,32 @@ public class UrlController {
                     HttpStatus.OK);
         }
 
+        Url lastUrl = dbHelper.getLastUrl();
+
+        if (counter.get() == 1 && lastUrl != null){
+            int idx = lastUrl.getShortUrl().lastIndexOf('/');
+            System.out.println("short URL: " + lastUrl.getShortUrl());
+            System.out.println("IDX: " + idx);
+
+            String hash = lastUrl.getShortUrl().substring(idx + 1, lastUrl.getShortUrl().length());
+            System.out.println("Hash: " + hash);
+            int id = UrlHelper.shortURLtoID(hash);
+            System.out.println("ID: " + id);
+            counter.set(id + 1);
+        }
         String shortenUrl = UrlHelper.shortenUrl(counter.get());
         if (shortenUrl != null && shortenUrl.length() > 0) {
+            shortenUrl = prepareShortenedUrlResponse(request, shortenUrl);
 
             Url url = new Url();
             url.setShortUrl(shortenUrl);
-            url.setLongUrl(preparedUrl);
-            url.setSubmitDate(new Date());
+            url.setLongUrl(trimmedUrl);
+            url.setSubmitDate(LocalDate.now());
 
             int id = dbHelper.insertUrl(url);
             counter.getAndIncrement();
 
-            shortenUrlResponse = prepareShortenedUrlResponse(request, shortenUrl);
+            shortenUrlResponse = new ShortenUrlResponse(shortenUrl);
             return new ResponseEntity(shortenUrlResponse, HttpStatus.OK);
         } else {
             System.out.println("Issue with Shorten URL: " + shortenUrl);
@@ -111,18 +131,16 @@ public class UrlController {
 
     }
 
-    private ShortenUrlResponse prepareShortenedUrlResponse(HttpServletRequest request, String shortenUrl) {
+    private String prepareShortenedUrlResponse(HttpServletRequest request, String shortenUrl) {
         ShortenUrlResponse shortenUrlResponse;
         String requestUrl = request.getRequestURI();
         String context = requestUrl.substring(0, requestUrl.lastIndexOf("shorten") - 1);
-        System.out.println("Context: " + context);
 
         StringBuilder finalShortenedUrl = new StringBuilder();
         finalShortenedUrl.append("http://").append(request.getHeader("Host")).append(context).append("/").append(shortenUrl);
 
-        shortenUrlResponse = new ShortenUrlResponse(finalShortenedUrl.toString());
         System.out.println("Shorten URL: " + shortenUrl);
-        return shortenUrlResponse;
+        return finalShortenedUrl.toString();
     }
 
     @ResponseBody

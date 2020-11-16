@@ -28,6 +28,31 @@ public class DBHelper {
         return connection;
     }
 
+    public Url getLastUrl() {
+        System.out.println("Method getLastUrl started");
+        Url url = null;
+
+        try {
+            ResultSet rs;
+            Statement statement = getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet resultSet = statement.executeQuery("select * from url ORDER BY ID ASC");
+            while (resultSet.next()) {
+                if (resultSet.isLast()) {
+                    url = new Url();
+                    url.setId(resultSet.getLong("id"));
+                    url.setLongUrl(resultSet.getString("long_url"));
+                    url.setShortUrl(resultSet.getString("short_url"));
+                    url.setSubmitDate(resultSet.getDate("submit_date").toLocalDate());
+                }
+            }
+
+            getConnection().close();
+        } catch (Exception e) {
+            System.err.println("Got an exception! " + e);
+        }
+        return url;
+    }
+
     public Url getUrlByLongUrl(String longUrl) {
 
         System.out.println("Long URL is " + longUrl);
@@ -37,8 +62,8 @@ public class DBHelper {
             ResultSet rs;
 
             System.out.println("Prepared statement");
-            PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM URL WHERE LONG_URL=?");
-            statement.setString(1, longUrl);
+            PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM URL WHERE LONG_URL like ?");
+            statement.setString(1, "%" + longUrl);
 
             System.out.println("Executing...");
             rs = statement.executeQuery();
@@ -93,10 +118,11 @@ public class DBHelper {
 
         int id = -1;
         try {
-            PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO URL (LONG_URL, SHORT_URL) VALUES (?,?)");
+            PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO URL (LONG_URL, SHORT_URL, SUBMIT_DATE) VALUES (?, ?, ?)");
 
             preparedStatement.setString(1, url.getLongUrl());
             preparedStatement.setString(2, url.getShortUrl());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(url.getSubmitDate()));
 
             id = preparedStatement.executeUpdate();
             System.out.println(id);
