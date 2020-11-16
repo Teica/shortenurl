@@ -1,7 +1,10 @@
 package com.mpejcinovic.url.shortenurl.configuration;
 
+import com.mpejcinovic.url.shortenurl.controllers.StatusController;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.quartz.CronTrigger;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -15,17 +18,37 @@ import javax.sql.DataSource;
 import java.util.Calendar;
 import java.util.Properties;
 
+/**
+ * Provides configuration for Quartz scheduler.
+ *
+ * @version 0.00.004
+ * @since 15.11.2020.
+ */
 @Slf4j
 @Configuration
 public class QuartzConfig {
     private ApplicationContext applicationContext;
     private DataSource dataSource;
 
+    private static final Logger QUARTZ_CONFIG_LOGGER = LogManager.getLogger(QuartzConfig.class);
+
+
+    /**
+     * Constructor for QuartzConfig.
+     *
+     * @param applicationContext an application context
+     * @param dataSource a datasource
+     */
     public QuartzConfig(ApplicationContext applicationContext, DataSource dataSource) {
         this.applicationContext = applicationContext;
         this.dataSource = dataSource;
     }
 
+    /**
+     * Creates a job factory.
+     *
+     * @return a job factory
+     */
     @Bean
     public SpringBeanJobFactory springBeanJobFactory() {
         AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
@@ -33,6 +56,12 @@ public class QuartzConfig {
         return jobFactory;
     }
 
+    /**
+     * Configures a scheduler.
+     *
+     * @param triggers triggers to be set to a scheduler factory
+     * @return a scheduler factory
+     */
     @Bean
     public SchedulerFactoryBean scheduler(Trigger... triggers) {
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
@@ -49,13 +78,19 @@ public class QuartzConfig {
             schedulerFactory.setTriggers(triggers);
         }
 
-        //DailyReportScheduler dailyReportScheduler = new DailyReportScheduler();
-        //dailyReportScheduler.startScheduler();
         return schedulerFactory;
     }
 
+    /**
+     * Creates a trigger based on provided parameters.
+     *
+     * @param jobDetail details regarding a job
+     * @param pollFrequencyMs frequency expressed in milliseconds
+     * @param triggerName a name of a trigger
+     * @return a trigger
+     */
     static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs, String triggerName) {
-        System.out.println("createTrigger(jobDetail={}, pollFrequencyMs={}, triggerName={})" +  jobDetail.toString() + " "+ pollFrequencyMs + " " +triggerName);
+        QUARTZ_CONFIG_LOGGER.debug("createTrigger(jobDetail={}" + jobDetail.toString() +", pollFrequencyMs=" + pollFrequencyMs + ", triggerName=" + triggerName + ")");
 
         SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
         factoryBean.setJobDetail(jobDetail);
@@ -68,8 +103,16 @@ public class QuartzConfig {
         return factoryBean;
     }
 
+    /**
+     * Creates a trigger based on a CRON expression.
+     *
+     * @param jobDetail details regarding a job
+     * @param cronExpression an expression for a frequency of a starting a job
+     * @param triggerName a name of a trigger
+     * @return a CRON trigger
+     */
     static CronTriggerFactoryBean createCronTrigger(JobDetail jobDetail, String cronExpression, String triggerName) {
-        System.out.println("createCronTrigger(jobDetail={}, cronExpression={}, triggerName={})" + jobDetail.toString() + " " + cronExpression + " " + triggerName);
+        QUARTZ_CONFIG_LOGGER.debug("createCronTrigger(jobDetail" + jobDetail.toString() +", cronExpression=" + cronExpression + ", triggerName=" + triggerName + ")");
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.SECOND, 0);
@@ -86,8 +129,15 @@ public class QuartzConfig {
         return factoryBean;
     }
 
+    /**
+     * Creates job detail.
+     *
+     * @param jobClass a class representing a job
+     * @param jobName a name of a job
+     * @return job detail object
+     */
     static JobDetailFactoryBean createJobDetail(Class jobClass, String jobName) {
-        System.out.println("createJobDetail(jobClass={}, jobName={})" + jobClass.getName() + " " + jobName);
+        QUARTZ_CONFIG_LOGGER.debug("createJobDetail(jobClass=" + jobClass.getName() + ", jobName=" + jobName + ")");
 
         JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
         factoryBean.setName(jobName);

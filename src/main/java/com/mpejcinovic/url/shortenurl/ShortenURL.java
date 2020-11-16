@@ -5,6 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
+/**
+ * Initial class for application.
+ *
+ * @author Matea Pejcinovic
+ * @version 0.00.001
+ * @since 13.11.2020.
+ */
 @SpringBootApplication
 public class ShortenURL extends SpringBootServletInitializer {
     /**

@@ -8,6 +8,8 @@ import com.mpejcinovic.url.shortenurl.integration.objects.SMSRequest;
 import com.mpejcinovic.url.shortenurl.integration.objects.SMSResponse;
 import com.mpejcinovic.url.shortenurl.object.ErrorResponse;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -15,11 +17,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 
+/**
+ * A client class for interaction with Infobip API.
+ *
+ * @author Matea Pejcinovic
+ * @version 0.00.004
+ * @since 15.11.2020.
+ */
 public class InfobipSMSClient {
 
     String text;
     String endpoint;
     String key;
+
+    private static final Logger INFOBIP_SMS_CLIENT_LOGGER = LogManager.getLogger(InfobipSMSClient.class);
 
     public InfobipSMSClient(String text, String endpoint, String key) {
         this.text = text;
@@ -27,10 +38,15 @@ public class InfobipSMSClient {
         this.key = key;
     }
 
+    /**
+     * Sends an SMS for submitted text.
+     *
+     * @return a response after sending an SMS.
+     */
     @SneakyThrows
     public String sendSMS() {
 
-        System.out.println("Method sendSMS started!");
+        INFOBIP_SMS_CLIENT_LOGGER.info("Method sendSMS started!");
 
         URL _url = new URL(endpoint);
         HttpURLConnection urlConn = (HttpURLConnection) _url.openConnection();
@@ -43,7 +59,7 @@ public class InfobipSMSClient {
         urlConn.connect();
 
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(urlConn.getOutputStream()));
-        writer.write(prepareInvoiceRequest());
+        writer.write(prepareRequest());
         writer.flush();
         writer.close();
 
@@ -66,7 +82,7 @@ public class InfobipSMSClient {
             }
             is.close();
             response = sb.toString();
-            System.out.println("Response: " + response);
+            INFOBIP_SMS_CLIENT_LOGGER.info("Response: " + response);
         } catch (Exception e) {
 
         }
@@ -84,11 +100,21 @@ public class InfobipSMSClient {
         }
     }
 
+    /**
+     * Decodes an API key.
+     *
+     * @return decoded value of an API key
+     */
     private String decodeAPIKey() {
         return new String(Base64.getDecoder().decode(key.getBytes()));
     }
 
-    private String prepareInvoiceRequest() {
+    /**
+     * Prepares a request.
+     *
+     * @return request in JSON form
+     */
+    private String prepareRequest() {
 
         SMSRequest smsRequest = new SMSRequest();
 
@@ -111,7 +137,7 @@ public class InfobipSMSClient {
 
 
         String json = new GsonBuilder().create().toJson(smsRequest, SMSRequest.class);
-        System.out.println("JSON request: " + json);
+        INFOBIP_SMS_CLIENT_LOGGER.debug("JSON request: " + json);
         return json;
     }
 

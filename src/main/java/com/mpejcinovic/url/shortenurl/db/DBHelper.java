@@ -3,33 +3,55 @@ package com.mpejcinovic.url.shortenurl.db;
 import com.mpejcinovic.url.shortenurl.configuration.DBProperties;
 import com.mpejcinovic.url.shortenurl.object.Url;
 import lombok.NoArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.LocalDate;
 
+/**
+ * Helper for interaction with a database.
+ *
+ * @author Matea Pejcinovic
+ * @version 0.00.003
+ * @since 14.11.2020.
+ */
 @NoArgsConstructor
 public class DBHelper {
     Connection connection = null;
 
     DBProperties props;
 
+    private static final Logger DB_HELPER_LOGGER = LogManager.getLogger(DBHelper.class);
+    
     public DBHelper(DBProperties dbProperties) {
         props = dbProperties;
     }
 
+    /**
+     * Gets the connection to a database.
+     *
+     * @return a Connection object
+     * @see Connection
+     */
     private Connection getConnection() {
         try {
             connection = DriverManager.getConnection(props.getJdbcURL(), props.getJdbcUsername(), props.getJdbcPassword());
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         return connection;
     }
 
+    /**
+     * Retrieves last inserted URL.
+     *
+     * @return a URL representing last inserted object
+     * @see Url
+     */
     public Url getLastUrl() {
-        System.out.println("Method getLastUrl started");
+        DB_HELPER_LOGGER.info("Method getLastUrl started");
         Url url = null;
 
         try {
@@ -48,57 +70,64 @@ public class DBHelper {
 
             getConnection().close();
         } catch (Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return url;
     }
 
+    /**
+     * Gets the Url object based on original URL.
+     *
+     * @param longUrl original URL
+     * @return a Url object
+     * @see Url
+     */
     public Url getUrlByLongUrl(String longUrl) {
 
-        System.out.println("Long URL is " + longUrl);
+        DB_HELPER_LOGGER.info("Long URL is " + longUrl);
         Url url = null;
 
         try {
             ResultSet rs;
 
-            System.out.println("Prepared statement");
             PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM URL WHERE LONG_URL like ?");
             statement.setString(1, "%" + longUrl);
-
-            System.out.println("Executing...");
             rs = statement.executeQuery();
 
             while (rs.next()) {
                 String shortUrl = rs.getString("short_url");
-                System.out.println("Short URL: " + shortUrl);
                 long id = rs.getLong("id");
-                System.out.println("ID: " + id);
                 url = new Url();
                 url.setId(id);
                 url.setLongUrl(longUrl);
                 url.setShortUrl(shortUrl);
-                System.out.println("Long URL: " + longUrl);
+                DB_HELPER_LOGGER.debug("Long URL: " + longUrl);
             }
             getConnection().close();
         } catch (Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return url;
     }
 
+    /**
+     * Gets Url object by identifier.
+     *
+     * @param id an identifier of a row in a database
+     * @return a Url object
+     * @see Url
+     */
     public Url getUrlById(long id) {
 
-        System.out.println("ID is " + id);
+        DB_HELPER_LOGGER.debug("ID is " + id);
         Url url = null;
 
         try {
             ResultSet rs;
 
-            System.out.println("Prepared statement");
             PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM URL WHERE ID=?");
             statement.setLong(1, id);
 
-            System.out.println("Executing...");
             rs = statement.executeQuery();
 
             while (rs.next()) {
@@ -109,11 +138,18 @@ public class DBHelper {
             }
             getConnection().close();
         } catch (Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return url;
     }
 
+    /**
+     * Inserts a Url object in a database.
+     *
+     * @param url a Url object to be inserted
+     * @return an identifier of the inserted row
+     * @see Url
+     */
     public int insertUrl(Url url) {
 
         int id = -1;
@@ -125,69 +161,78 @@ public class DBHelper {
             preparedStatement.setDate(3, java.sql.Date.valueOf(url.getSubmitDate()));
 
             id = preparedStatement.executeUpdate();
-            System.out.println(id);
+            DB_HELPER_LOGGER.debug(id);
 
             getConnection().close();
         } catch (
                 Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return id;
     }
 
+    /**
+     * Gets the number of requests for yesterday.
+     *
+     * @param yesterday previous day
+     * @return a number of requests for yesterday
+     */
     public int getNumberOfRequestForPreviousDay(LocalDate yesterday) {
 
-        System.out.println("Today is " + yesterday);
+        DB_HELPER_LOGGER.debug("Yesterday is " + yesterday);
         int numberOfRequests = -1;
 
         try {
             ResultSet rs;
 
-            System.out.println("Prepared statement");
             PreparedStatement statement = getConnection().prepareStatement("SELECT COUNT(*) FROM URL WHERE SUBMIT_DATE=?");
             statement.setDate(1, java.sql.Date.valueOf(yesterday));
 
-            System.out.println("Executing...");
             rs = statement.executeQuery();
 
             if (rs.next()) {
                 numberOfRequests = rs.getInt(1);
-                System.out.println("Number of requests: " + numberOfRequests);
+                DB_HELPER_LOGGER.debug("Number of requests: " + numberOfRequests);
             } else {
-                System.out.println("Error: could not get the record counts");
+                DB_HELPER_LOGGER.debug("Error: could not get the record counts");
             }
             getConnection().close();
         } catch (Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return numberOfRequests;
 
     }
 
+    /**
+     * Gets a number of requests in a certain range.
+     *
+     * @param startDate the start date for a date range
+     * @param endDate the end date for a date range
+     * @return a number of requests in a defined date range
+     */
     public int getNumberOfRequestForDateRange(LocalDate startDate, LocalDate endDate) {
-        System.out.println("Start date: " + startDate + ", end date: " + endDate);
+        DB_HELPER_LOGGER.debug("Start date: " + startDate + ", end date: " + endDate);
         int numberOfRequests = -1;
 
         try {
             ResultSet rs;
 
-            System.out.println("Prepared statement");
             PreparedStatement statement = getConnection().prepareStatement("SELECT COUNT(*) FROM URL WHERE SUBMIT_DATE BETWEEN ? AND ?");
             statement.setDate(1, java.sql.Date.valueOf(startDate));
             statement.setDate(2, java.sql.Date.valueOf(endDate));
 
-            System.out.println("Executing...");
             rs = statement.executeQuery();
 
             if (rs.next()) {
                 numberOfRequests = rs.getInt(1);
-                System.out.println("Number of requests: " + numberOfRequests);
+                DB_HELPER_LOGGER.debug("Number of requests: " + numberOfRequests);
             } else {
-                System.out.println("Error: could not get the record counts");
+                DB_HELPER_LOGGER.debug("Error: could not get the record counts");
             }
             getConnection().close();
         } catch (Exception e) {
-            System.err.println("Got an exception! " + e);
+            DB_HELPER_LOGGER.error("Got an exception! " + e);
         }
         return numberOfRequests;
     }
